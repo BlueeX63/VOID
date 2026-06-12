@@ -54,20 +54,31 @@ io.on("connection", (socket) => {
 
     const isAiCalled = data.message.includes("@ai")
     if (isAiCalled) {
-      const prompt = data.message.replace("@ai", "");
-      const result = await generateResult(prompt);
-      
-      const aiMessage = {
-        message: result,
-        sender: { username: "AI" }
-      };
+      try {
+        const prompt = data.message.replace("@ai", "");
+        const result = await generateResult(prompt);
+        
+        const aiMessage = {
+          message: result,
+          sender: { username: "AI" }
+        };
 
-      // Save AI's message to DB
-      await project.findByIdAndUpdate(socket.roomId, {
-        $push: { messages: aiMessage }
-      });
-    
-      io.to(socket.roomId).emit("project-message", aiMessage);
+        // Save AI's message to DB
+        await project.findByIdAndUpdate(socket.roomId, {
+          $push: { messages: aiMessage }
+        });
+      
+        io.to(socket.roomId).emit("project-message", aiMessage);
+      } catch (error) {
+        console.error("AI Generation Error:", error);
+        
+        const errorMessage = {
+          message: "⚠️ **AI Error**: Unable to generate a response. Please check if the `GOOGLE_API_KEY` environment variable is configured correctly on your server.",
+          sender: { username: "AI" }
+        };
+        
+        io.to(socket.roomId).emit("project-message", errorMessage);
+      }
       return;
     }
     

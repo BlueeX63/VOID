@@ -25,6 +25,7 @@ const Project = () => {
   const [selectedUsers, setselectedUsers] = useState([]);
   const [message, setmessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [isAiTyping, setIsAiTyping] = useState(false);
   const userData = JSON.parse(localStorage.getItem("userData"));
 
   function scrollToBottom() {
@@ -58,6 +59,9 @@ const Project = () => {
     const outgoing = { message, sender: userData };
     sendMessage("project-message", outgoing);
     setMessages((prev) => [...prev, outgoing]);
+    if (message.includes("@ai")) {
+      setIsAiTyping(true);
+    }
     setmessage("");
     setTimeout(scrollToBottom, 100);
   }
@@ -80,6 +84,9 @@ const Project = () => {
     
     const handleProjectMessage = (data) => {
       if (typeof data.message === "string" && data.message.trim() !== "") {
+        if (data?.sender?.username === "AI") {
+          setIsAiTyping(false);
+        }
         setMessages((prev) => [...prev, data]);
         setTimeout(scrollToBottom, 100);
       }
@@ -294,6 +301,24 @@ const Project = () => {
               </div>
             );
           })}
+
+          {isAiTyping && (
+            <div className="flex flex-col max-w-[85%] w-fit h-fit mx-auto w-full">
+              <div className="px-5 py-4 rounded-3xl text-[15px] leading-relaxed bg-white border border-black/5 shadow-xl shadow-black/5 w-full mt-2">
+                <div className="flex items-center gap-2 mb-2 pb-3 border-b border-black/5">
+                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <i className="ri-loader-4-line text-indigo-600 animate-spin text-sm"></i>
+                  </div>
+                  <span className="font-bold text-sm text-brand-text">Assistant is thinking...</span>
+                </div>
+                <div className="flex gap-1.5 p-2">
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Chat input bar */}

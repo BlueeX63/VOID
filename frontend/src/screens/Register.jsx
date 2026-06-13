@@ -89,12 +89,12 @@ const Register = () => {
         </div>
 
         {/* Text Overlay */}
-        <div className="relative z-10 text-white max-w-lg space-y-4">
+        <div className="relative z-10 text-white max-w-2xl space-y-4">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl sm:text-5xl font-syne font-black tracking-[0.08em] leading-none uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400"
+            className="text-4xl sm:text-5xl font-syne font-black tracking-[0.08em] leading-none uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 pr-8 pb-2"
           >
             Join the <br />
             Collective

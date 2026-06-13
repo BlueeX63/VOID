@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from '../config/axios';
@@ -12,8 +12,51 @@ const Home = () => {
   const [projectName, setProjectName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [projects, setProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
 
   const userData = JSON.parse(localStorage.getItem("userData")) || { username: "Developer" };
+
+  useEffect(() => {
+    axios
+      .get("/projects/all")
+      .then((res) => {
+        setProjects(res.data.projects || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching projects:", err);
+      });
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const filteredProjects = projects.filter((project) =>
+    project.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCloseModal = () => {
     setisModalOpen(false);
@@ -119,7 +162,7 @@ const Home = () => {
         
         {/* Top Navbar */}
         <header className="px-8 py-6 border-b border-gray-200 flex justify-between items-center bg-white/40 backdrop-blur-xl sticky top-0 z-30">
-          <div className="flex items-center space-x-3 w-full max-w-sm">
+          <div className="flex items-center space-x-3 w-full max-w-sm" ref={searchRef}>
             <div className="relative w-full">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,8 +172,56 @@ const Home = () => {
               <input 
                 type="text" 
                 placeholder="Search workspaces..." 
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsDropdownOpen(true);
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
                 className="w-full pl-9 pr-4 py-2 border border-black rounded-none bg-white text-xs font-semibold focus:outline-none text-black placeholder-zinc-400"
               />
+
+              <AnimatePresence>
+                {isDropdownOpen && searchQuery.trim() !== "" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 mt-2 bg-white border-2 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-h-60 overflow-y-auto z-50 text-left"
+                  >
+                    {filteredProjects.length === 0 ? (
+                      <div className="px-4 py-3.5 text-zinc-500 text-[10px] font-bold uppercase tracking-widest text-center">
+                        No workspaces found
+                      </div>
+                    ) : (
+                      filteredProjects.map((project) => (
+                        <div
+                          key={project._id}
+                          onClick={() => {
+                            navigate(`/project/${project._id}`);
+                            setSearchQuery("");
+                            setIsDropdownOpen(false);
+                          }}
+                          className="px-4 py-3 border-b border-gray-100 last:border-b-0 cursor-pointer flex items-center justify-between hover:bg-black hover:text-white text-black transition-colors duration-200 group"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold uppercase tracking-wider line-clamp-1">
+                              {project.name}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 group-hover:text-zinc-400 uppercase tracking-widest mt-0.5 font-bold transition-colors duration-200">
+                              {project.users ? project.users.length : 0} Collaborator{project.users?.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <svg className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

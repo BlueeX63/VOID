@@ -9,6 +9,11 @@ const Projects = () => {
   const navigate = useNavigate();
   const [projects, setprojects] = useState([]);
   const [loading, setloading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredProjects = projects.filter((project) =>
+    project.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     setloading(true);
@@ -36,23 +41,51 @@ const Projects = () => {
       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
         
         {/* Header Section */}
-        <div className="flex items-center gap-5">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-11 h-11 rounded-none bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 text-black"
-            aria-label="Go Back"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <h1 className="text-4xl font-syne font-black tracking-tight text-black uppercase leading-none">
-              My Projects
-            </h1>
-            <p className="text-zinc-500 font-semibold text-xs uppercase tracking-wider mt-1.5">
-              Keep track of every workspace you and your team are building.
-            </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <button 
+              onClick={() => navigate(-1)}
+              className="w-11 h-11 rounded-none bg-white border border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors duration-200 cursor-pointer active:scale-95 text-black"
+              aria-label="Go Back"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-4xl font-syne font-black tracking-tight text-black uppercase leading-none">
+                My Projects
+              </h1>
+              <p className="text-zinc-500 font-semibold text-xs uppercase tracking-wider mt-1.5">
+                Keep track of every workspace you and your team are building.
+              </p>
+            </div>
+          </div>
+
+          {/* Search Input Widget */}
+          <div className="relative w-full max-w-sm">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input 
+              type="text" 
+              placeholder="Search by workspace name..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-black rounded-none bg-white text-xs font-semibold focus:outline-none text-black placeholder-zinc-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-black transition-colors"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -64,7 +97,7 @@ const Projects = () => {
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-md mx-auto border border-black bg-white rounded-none p-10 text-center"
+            className="max-w-md mx-auto border border-black bg-white rounded-none p-10 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <div className="w-16 h-16 bg-zinc-50 text-black border border-black rounded-none flex items-center justify-center mx-auto mb-6">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,9 +117,33 @@ const Projects = () => {
               Go to Dashboard
             </button>
           </motion.div>
+        ) : filteredProjects.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto border border-black bg-white rounded-none p-10 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <div className="w-16 h-16 bg-zinc-50 text-black border border-black rounded-none flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-syne font-black text-black uppercase mb-2">
+              No matches found
+            </h2>
+            <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-8">
+              No workspaces matched "{searchQuery}"
+            </p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="bg-black text-white px-8 py-3.5 rounded-none text-xs uppercase tracking-widest font-black hover:bg-zinc-800 transition-colors cursor-pointer active:scale-95 font-syne"
+            >
+              Clear Search
+            </button>
+          </motion.div>
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project, idx) => (
+            {filteredProjects.map((project, idx) => (
               <motion.div
                 key={project._id}
                 initial={{ opacity: 0, y: 20 }}

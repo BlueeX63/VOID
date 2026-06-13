@@ -15,6 +15,43 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const googleClientRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (window.google) {
+      googleClientRef.current = window.google.accounts.oauth2.initTokenClient({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "598835848833-exampleclientid.apps.googleusercontent.com",
+        scope: "openid email profile",
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            setLoading(true);
+            setErrorMsg("");
+            try {
+              const res = await axios.post('/users/google-login', { token: tokenResponse.access_token }, { withCredentials: true });
+              localStorage.setItem('token', res.data.token);
+              localStorage.setItem("userData", JSON.stringify(res.data.user));
+              setuserData(res.data.user);
+              navigate('/mainhome');
+            } catch (err) {
+              console.error(err);
+              setErrorMsg(err.response?.data?.message || "Google Authentication failed. Please try again.");
+            } finally {
+              setLoading(false);
+            }
+          }
+        },
+      });
+    }
+  }, [navigate, setuserData]);
+
+  const handleGoogleLogin = () => {
+    if (googleClientRef.current) {
+      googleClientRef.current.requestAccessToken();
+    } else {
+      setErrorMsg("Google Sign-In is initializing. Please wait or refresh the page.");
+    }
+  };
+
   function handleChange(e) {
     const { name, value } = e.target;
     if (name === "email") {
@@ -77,12 +114,12 @@ const Login = () => {
         </div>
 
         {/* Text Overlay */}
-        <div className="relative z-10 text-white max-w-lg space-y-4">
+        <div className="relative z-10 text-white max-w-2xl space-y-4">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl sm:text-5xl font-syne font-black tracking-[0.08em] leading-none uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400"
+            className="text-4xl sm:text-5xl font-syne font-black tracking-[0.08em] leading-none uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 pr-8 pb-2"
           >
             Your Next <br />
             Adventure Awaits!
@@ -200,6 +237,7 @@ const Login = () => {
             {/* Google Sign In visual mockup */}
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="w-full py-4 rounded-none border border-white/10 hover:bg-white/5 bg-transparent font-bold text-white transition-all flex items-center justify-center gap-3 text-xs uppercase tracking-wider cursor-pointer active:scale-[0.98] font-syne"
             >
               <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24" width="24" height="24">

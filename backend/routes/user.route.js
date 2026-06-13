@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import { userRegister, userLogin, userProfile, userLogout, verifyUser, getAllUsers } from "../controllers/authcontroller.js";
+import { userRegister, userLogin, userProfile, userLogout, verifyUser, getAllUsers, googleLogin } from "../controllers/authcontroller.js";
 import * as authMiddleware from '../middlewares/auth.middleware.js'
 
 const router = express.Router();
@@ -21,6 +21,8 @@ body("email").isEmail().trim().withMessage("Email must be correct"),
     .isLength({ min: 3 })
     .withMessage("password must be at least 3 characters long"),
   userLogin)
+
+router.post("/google-login", googleLogin);
 
 
 router.get('/profile',authMiddleware.authUser,userProfile)  

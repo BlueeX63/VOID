@@ -136,8 +136,73 @@ async function getAllUsers(req,res){
   } catch (error) {
     console.log(error)
   }
-
-
 }
 
-export { userRegister, userLogin, userProfile, userLogout,verifyUser ,getAllUsers};
+async function googleLogin(req, res) {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: "Google access token is required" });
+    }
+
+    // Fetch user profile from Google UserInfo endpoint
+    const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+    if (!googleResponse.ok) {
+      return res.status(400).json({ message: "Failed to verify access token with Google" });
+    }
+
+    const googleUser = await googleResponse.json();
+    const { email, name } = googleUser;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email not provided by Google account" });
+    }
+
+    // Try to find if user already exists
+    let existingUser = await user.findOne({ email });
+
+    if (!existingUser) {
+      // Create new user (automatically verify email since it is a verified Google account)
+      let username = name ? name.toLowerCase().replace(/[^a-z0-9]/g, "") : "user";
+      // Ensure unique username
+      let usernameExists = await user.findOne({ username });
+      if (usernameExists) {
+        username = `${username}${Math.floor(100 + Math.random() * 900)}`;
+      }
+
+      const randomPassword = Math.random().toString(36).substring(2, 15);
+      const hashedPassword = await user.hashPassword(randomPassword);
+
+      existingUser = new user({
+        username,
+        email,
+        password: hashedPassword,
+        isValidOtp: true
+      });
+      await existingUser.save();
+    } else {
+      // If user exists but email is not verified, set isValidOtp to true
+      if (!existingUser.isValidOtp) {
+        existingUser.isValidOtp = true;
+        await existingUser.save();
+      }
+    }
+
+    const jwtToken = await existingUser.jsonWebToken();
+    res.cookie("token", jwtToken);
+    
+    // Remove password from response
+    delete existingUser._doc.password;
+
+    return res.status(200).json({
+      message: "Google login successful",
+      token: jwtToken,
+      user: existingUser
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    return res.status(500).json({ message: "Google login failed", error: error.message });
+  }
+}
+
+export { userRegister, userLogin, userProfile, userLogout, verifyUser, getAllUsers, googleLogin };

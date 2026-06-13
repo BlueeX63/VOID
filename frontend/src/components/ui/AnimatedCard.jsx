@@ -51,12 +51,12 @@ const AnimatedCard = ({ children, className, containerClassName }) => {
           transformStyle: "preserve-3d",
         }}
         className={cn(
-          "relative h-full w-full rounded-3xl glass transition-all duration-300 ease-out hover:shadow-xl",
+          "relative h-full w-full rounded-none glass transition-all duration-300 ease-out hover:shadow-xl",
           className
         )}
       >
         <div
-          className="absolute inset-0 rounded-3xl opacity-0 mix-blend-overlay transition-opacity duration-500 group-hover:opacity-100"
+          className="absolute inset-0 rounded-none opacity-0 mix-blend-overlay transition-opacity duration-500 group-hover:opacity-100"
           style={{
             background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.8) 25%, transparent 30%)",
             transform: "translateZ(1px)"

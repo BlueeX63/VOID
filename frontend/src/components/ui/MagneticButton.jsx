@@ -29,7 +29,7 @@ const MagneticButton = ({ children, className, onClick, ...props }) => {
       transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-full px-8 py-4 font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]",
+        "relative overflow-hidden rounded-none px-8 py-4 font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]",
         className
       )}
       {...props}
